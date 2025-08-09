@@ -29,12 +29,17 @@ def get_transcript():
         return jsonify({'error': 'Missing video_id'}), 400
     
     try:
-        # Try with custom session and user agent
+        # Try with custom session, user agent, and optional proxy
         session = requests.Session()
         session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         })
-        
+
+        # Optional proxy support via env var, e.g. socks5h://tor:9050 or http://user:pass@host:port
+        proxy_url = os.getenv('PROXY_URL')
+        if proxy_url:
+            session.proxies.update({'http': proxy_url, 'https': proxy_url})
+
         ytt_api = YouTubeTranscriptApi(http_client=session)
         transcript = ytt_api.fetch(video_id)
         lines = [entry.text for entry in transcript]
